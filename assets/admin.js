@@ -28,8 +28,8 @@ function logout(){CM.token=null;S.refresh=null;localStorage.removeItem('cm_ses')
 async function restore(){try{const s=JSON.parse(localStorage.getItem('cm_ses')||'null');if(!s||!s.refresh)return false;S.refresh=s.refresh;S.uid=s.uid;CM.token='x';S.exp=0;
  if(!await ensureFresh()){CM.token=null;return false;}return(await checkAdmin())===null;}catch(_){return false;}}
 // ---- data ----
-async function fetchAll(path){const out=[];for(let from=0;;from+=1000){const r=await CM.rest(path,{headers:{Range:`${from}-${from+999}`,'Range-Unit':'items'}});
- if(!r.ok&&r.status!==206)throw new Error(path+' '+r.status);const rows=await r.json();out.push(...rows);if(rows.length<1000)break;}return out;}
+async function fetchAll(path){const out=[];for(let from=0;;from+=1000){const r=await CM.rest(path+(path.includes('?')?'&':'?')+`limit=1000&offset=${from}`);
+ if(!r.ok)throw new Error(path+' '+r.status);const rows=await r.json();out.push(...rows);if(rows.length<1000)break;}return out;}
 async function load(){await ensureFresh();
  const [items,subs]=await Promise.all([fetchAll('/rest/v1/cm_items?select=kind,id,data,updated_at&deleted=eq.false'),fetchAll('/rest/v1/cm_submissions?select=*&order=created_at.desc')]);
  const D={factory:[],contractor:[],observation:[],kpi:[],gate:[],round:[]};let last=null;
